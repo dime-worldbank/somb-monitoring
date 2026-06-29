@@ -97,7 +97,11 @@
 #!/**/*.yml
 #!/**/*.yaml
 
-
+#######################
+# Raw data should be ignored but the empty folder kept.
+**/raw_data/**
+!**/raw_data/
+!**/raw_data/.gitkeep
 
 #######################
 # Include some additional file formats in any output folder. You might have
