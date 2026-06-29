@@ -16,8 +16,7 @@ Outputs:
 
 ********************************************************************/
 
-version 18
-clear all
+version 18 
 set more off
 
 *============================================================*
@@ -26,12 +25,14 @@ set more off
 
 * These globals should normally be defined in 00_master.do.
 * Fallbacks make this do-file runnable as a standalone script.
-capture confirm global processed_path
-if _rc global processed_path "../02_data/processed"
+if "$processed_path" == "" {
+    di as error "Global processed_path not defined. Please run 00_master.do."
+    exit 198
+}
 
 capture mkdir "$processed_path"
 
-global clean_analysis_file "$processed_path/SoMB_WB_Daten_cleaned_analysis.dta"
+global clean_analysis_file "$processed_path/SoMB_analysis.dta"
 global infographic_file   "$processed_path/SoMB_WB_infographic_analysis.dta"
 
 capture confirm file "$clean_analysis_file"

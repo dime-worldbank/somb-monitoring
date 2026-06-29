@@ -22,13 +22,7 @@ clear
 
 tempfile master
 save `master', emptyok replace
-
 local files : dir "$raw_path" files "*.csv"
-
-if "`files'" == "" {
-    display as error "No CSV files found in raw_data folder."
-    exit 601
-}
 
 foreach file of local files {
 
@@ -36,15 +30,13 @@ foreach file of local files {
 
     import delimited ///
         "$raw_path/`file'", ///
-        clear varnames(1) stringcols(_all) bindquote(strict)
+        clear varnames(1) stringcols(_all)
 
     gen source_file = "`file'"
 
     append using `master'
     save `master', replace
 }
-
-use `master', clear
 
 /******************************************************************
  2. Rename variables to English

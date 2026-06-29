@@ -23,8 +23,7 @@ Notes:
 
 *******************************************************************/
 
-version 18
-clear all
+version 18 
 set more off
 
 *============================================================*
@@ -33,8 +32,10 @@ set more off
 
 * These globals should normally be defined in 00_master.do.
 * Fallbacks make this do-file runnable as a standalone script.
-capture confirm global processed_path
-if _rc global processed_path "../02_data/processed"
+if "$processed_path" == "" {
+    di as error "Global processed_path not defined. Please run 00_master.do."
+    exit 198
+}
 
 capture confirm global outputs_path
 if _rc global outputs_path "../04_outputs"

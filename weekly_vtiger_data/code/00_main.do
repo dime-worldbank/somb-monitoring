@@ -15,7 +15,7 @@ set more off
 * Open Stata in the main project folder before running this file.
 
 
-global project_path "`c(pwd)'"
+global project_path "`c(pwd)'/.."
 
 global code_path      "$project_path/code"
 global raw_path       "$project_path/raw_data"
