@@ -21,18 +21,12 @@ Notes:
 ********************************************************************/
 
 version 18
-clear all
 set more off
 
 *============================================================*
 * 0. Project paths
 *============================================================*
 
-capture confirm global raw_path
-if _rc global raw_path "../01_data/raw"
-
-capture confirm global processed_path
-if _rc global processed_path "../02_data/processed"
 
 capture mkdir "$processed_path"
 

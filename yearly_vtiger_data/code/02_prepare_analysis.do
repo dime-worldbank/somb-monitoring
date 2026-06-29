@@ -16,16 +16,17 @@ Outputs:
 
 ********************************************************************/
 
-version 18
-clear all
+version 18 
 set more off
 
 *============================================================*
 * 0. Project paths
 *============================================================*
 
-capture confirm global processed_path
-if _rc global processed_path "../02_data/processed"
+if "$processed_path" == "" {
+    di as error "Global processed_path not defined. Please run 00_master.do."
+    exit 198
+}
 
 capture mkdir "$processed_path"
 

@@ -7,24 +7,22 @@
 
 
 ******************************************************************/
-
-clear all
+clear 
 set more off
 version 18
 
 *------------------------------------------------------------*
 * 1. Define project paths
 *------------------------------------------------------------*
+global project_path "`c(pwd)'/.."
 
-global root "`c(pwd)'"
-
-global code_path      "$root/code"
-global raw_path       "$root/raw_data"
-global processed_path "$root/processed"
-global output_path    "$root/outputs"
+global code_path      "$project_path/code"
+global raw_path       "$project_path/raw_data"
+global processed_path "$project_path/processed"
+global output_path    "$project_path/outputs"
 global graph_path     "$output_path/graphs"
 global table_path     "$output_path/tables"
-global log_path       "$root/logs"
+global log_path       "$project_path/logs"
 
 capture mkdir "$processed_path"
 capture mkdir "$output_path"
@@ -56,9 +54,6 @@ do "$code_path/03_infographic_clean_group.do"
 
 do "$code_path/04_infographic_graphs.do"
 
-do "$code_path/05_weekly_tables.do"
-
-do "$code_path/06_weekly_graphs.do"
 
 display "==========================================="
 display "Pipeline finished successfully."
