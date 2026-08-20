@@ -139,9 +139,35 @@ bys consultant: tab ai
 sort consultant week
 list consultant week ai, sepby(consultant)
 
-* reshape to copy
+
+ *Save long randomization schedule for analysis
+
+
+sort consultant week
+
+rename consultant counselor_id
+rename week project_week
+
+save "$processed_path/randomization_schedule.dta", replace
+
+export excel using ///
+    "$processed_path/randomization_schedule.xlsx", ///
+    firstrow(variables) replace
+
+ * Save wide version for manual review
+ 
+preserve
+
+rename counselor_id consultant
+rename project_week week
+
 reshape wide ai, i(consultant) j(week)
 
-* save final randomization schedule
-save "rct_randomization_schedule_wide.dta", replace
-export excel using "rct_randomization_schedule_wide.xlsx", firstrow(variables) replace
+save "$processed_path/rct_randomization_schedule_wide.dta", replace
+
+export excel using ///
+    "$processed_path/rct_randomization_schedule_wide.xlsx", ///
+    firstrow(variables) replace
+
+restore
+
