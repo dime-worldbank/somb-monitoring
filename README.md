@@ -21,46 +21,37 @@ To run the analysis, copy the raw CSV files from OneDrive into the `raw_data/` f
 The weekly Vtiger data workflow is organized as follows:
 
 weekly_vtiger_data/
-│
-├── code/
-│   │
-│   ├── high_frequency/
-│   │   ├── 00_main.do
-│   │   ├── 01_import_clean.do
-│   │   ├── 02_create_indicators.do
-│   │   ├── 03_weekly_tables.do
-│   │   ├── 04_graphs.do
-│   │   └── 05_stakeholder_graphs.do
-│   │
-│   ├── randomization/
-│   │   └── 01_create_randomization_schedule.do
-│   │
-│   └── empirical/
-│       ├── 00_main_analysis.do
-│       ├── 01_create_analysis_variables.do
-│       ├── 02_analysis_checks.do
-│       ├── 03_descriptive_analysis.do
-│       └── 04_main_ols.do
-│
-├── raw_data/
-│
-├── processed_data/
-│   ├── SoMB_WB_clean_base.dta
-│   ├── SoMB_WB_monitoring_indicators.dta
-│   ├── randomization_schedule.dta
-│   └── SoMB_WB_analysis.dta
-│
-└── outputs/
-    │
-    ├── high_frequency/
-    │   ├── tables/
-    │   ├── graphs/
-    │   └── logs/
-    │
-    └── empirical/
-        ├── tables/
-        ├── graphs/
-        └── logs/
+    code/
+        high_frequency/
+            00_main.do
+            01_import_clean.do
+            02_create_indicators.do
+            03_weekly_tables.do
+            04_graphs.do
+            05_stakeholder_graphs.do
+         randomization/
+             01_create_randomization_schedule.do
+         empirical/
+             00_main_analysis.do
+              01_create_analysis_variables.do
+              02_analysis_checks.do
+              03_descriptive_analysis.do
+              04_main_ols.do
+    raw_data/
+    processed_data/
+        SoMB_WB_clean_base.dta
+         SoMB_WB_monitoring_indicators.dta
+         randomization_schedule.dta
+          SoMB_WB_analysis.dta
+    outputs/
+        high_frequency/
+             tables/
+             graphs/
+             logs/
+        empirical/
+            tables/
+            graphs/
+            logs/
 
 
 The separation between high_frequency/ and empirical/ ensures that routine implementation monitoring and the empirical impact analysis can be run and maintained independently while using the same underlying cleaned data.
