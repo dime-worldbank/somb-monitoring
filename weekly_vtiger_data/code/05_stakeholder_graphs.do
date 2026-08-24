@@ -58,7 +58,7 @@ use "$indicator_file", clear
 capture drop case_counter
 gen case_counter = 1
 
-keep if inrange(project_week, 1, 7)
+keep if inrange(project_week, 1, 14)
 
 drop if inlist(created_date, ///
     td(08may2026), ///
@@ -107,7 +107,7 @@ twoway ///
     title("Weekly Case Volume and Lateris Use", $title_style) ///
     xtitle("Project week", size($axis_title_size)) ///
     ytitle("Number of cases", size($axis_title_size)) ///
-    xlabel(1(1)7, labsize($axis_label_size) nogrid) ///
+    xlabel(1(1)14, labsize($axis_label_size) nogrid) ///
     ylabel(0(20)100, labsize($axis_label_size) nogrid) ///
     yscale(range(0 100)) ///
     legend( ///
@@ -162,6 +162,71 @@ graph export "$graph_path/stakeholder_02_weekly_lateris_use_by_language_panels.s
 
 restore
 
+
+***************************************************************
+* Lateris Adherence by Language:
+* Weeks 1–7 and Weeks 8–14
+***************************************************************
+
+foreach period in 1 2 {
+
+    preserve
+
+    * Define week range, title, and file name.
+    if `period' == 1 {
+        local week_start 1
+        local week_end   7
+        local period_title "Weeks 1–7"
+        local file_suffix "weeks_01_07"
+    }
+    else {
+        local week_start 8
+        local week_end   14
+        local period_title "Weeks 8–14"
+        local file_suffix "weeks_08_14"
+    }
+
+    * Keep only the relevant project weeks.
+    keep if inrange(project_week, `week_start', `week_end')
+
+    drop if inlist(language, ///
+        "German", "Deutsch", ///
+        "Vietnamese", "Vietnamesisch", "21: Vietnamesisch")
+
+    keep if !missing(language) & trim(language) != ""
+    keep if !missing(lateris_yes)
+
+    collapse ///
+        (sum) total_cases = case_counter ///
+        (sum) lateris_cases = lateris_yes ///
+        (mean) share_lateris = lateris_yes, ///
+        by(project_week language)
+
+    replace share_lateris = share_lateris * 100
+
+    graph bar share_lateris, ///
+        over(language, sort(1) descending ///
+            label(labsize(vsmall) angle(45))) ///
+        by(project_week, ///
+            rows(2) ///
+            title("Lateris Adherence by Language and Project Week: `period_title'", ///
+                $title_style) ///
+            note("")) ///
+        ytitle("Lateris used (%)", size($axis_title_size)) ///
+        ylabel(0 50 100, labsize($axis_label_size) nogrid) ///
+        yscale(range(0 100)) ///
+        blabel(bar, format(%9.0f) size(vsmall) color(black)) ///
+        bar(1, color($col_lateris)) ///
+        $graph_style
+
+    graph export ///
+        "$graph_path/stakeholder_02_weekly_lateris_use_by_language_`file_suffix'.svg", ///
+        replace width(3600) height(2200)
+
+    restore
+}
+
+
 /******************************************************************
  4. Cases by language, all stakeholder weeks combined
 ******************************************************************/
@@ -197,17 +262,37 @@ restore
 
 preserve
 
+*------------------------------------------------------------
+* Harmonize quality scales
+*
+* Weeks 1–11:
+* 1 "Excellent" 2 "Good" 3 "Adequate" 4 "Poor" 5 "Very poor",
+*
+* From week 12:
+* 5 "Excellent" 4 "Good" 3 "Adequate" 2 "Poor" 1 "Very poor",
+*
+* Convert weeks 12 onward to the original scale
+*------------------------------------------------------------
+
+foreach q in accuracy clarity appropriateness speed completeness {
+
+    gen `q'_harmonized = `q'
+
+    replace `q'_harmonized = 6 - `q' ///
+        if project_week >= 12 & !missing(`q')
+}
+
 collapse ///
-    (mean) avg_accuracy = accuracy ///
-    (mean) avg_clarity = clarity ///
-    (mean) avg_appropriateness = appropriateness ///
-    (mean) avg_speed = speed ///
-    (mean) avg_completeness = completeness ///
-    (count) n_accuracy = accuracy ///
-    (count) n_clarity = clarity ///
-    (count) n_appropriateness = appropriateness ///
-    (count) n_speed = speed ///
-    (count) n_completeness = completeness, ///
+    (mean) avg_accuracy = accuracy_harmonized ///
+    (mean) avg_clarity = clarity_harmonized ///
+    (mean) avg_appropriateness = appropriateness_harmonized ///
+    (mean) avg_speed = speed_harmonized ///
+    (mean) avg_completeness = completeness_harmonized ///
+    (count) n_accuracy = accuracy_harmonized ///
+    (count) n_clarity = clarity_harmonized ///
+    (count) n_appropriateness = appropriateness_harmonized ///
+    (count) n_speed = speed_harmonized ///
+    (count) n_completeness = completeness_harmonized, ///
     by(project_week)
 
 sort project_week
@@ -230,9 +315,13 @@ foreach q in accuracy clarity appropriateness speed completeness {
         title("`panel_title'", size(small) color(black)) ///
         xtitle("Project week", size(vsmall)) ///
         ytitle("") ///
-        xlabel(1(1)7, labsize(vsmall) nogrid) ///
-        ylabel(1 "Excellent" 2 "Good" 3 "Adequate" 4 "Poor" 5 "Very poor", ///
-            angle(0) labsize(vsmall) nogrid) ///
+        xlabel(1(1)14, labsize(vsmall) nogrid) ///
+        ylabel(1 "Excellent" ///
+               2 "Good" ///
+               3 "Adequate" ///
+               4 "Poor" ///
+               5 "Very poor", ///
+               angle(0) labsize(vsmall) nogrid) ///
         yscale(reverse range(0.8 5.2)) ///
         legend(off) ///
         $graph_style ///
@@ -243,10 +332,10 @@ graph combine ///
     q_accuracy q_clarity q_appropriateness q_speed q_completeness, ///
     rows(2) ///
     title("Weekly Quality Ratings", $title_style) ///
-    subtitle("Mean ratings by dimension; point labels show n", size($subtitle_size)) ///
     graphregion(color(white))
 
-graph export "$graph_path/stakeholder_04_weekly_quality_ratings_separate_panels.png", ///
+graph export ///
+    "$graph_path/stakeholder_04_weekly_quality_ratings_separate_panels.png", ///
     replace width(3600) height(2200)
 
 restore
@@ -284,10 +373,9 @@ twoway ///
     (scatter median_duration project_week, ///
         mcolor($col_median)), ///
     title("Weekly Consultation Duration", $title_style) ///
-    subtitle("Mean and median minutes; point labels show n", size($subtitle_size)) ///
     xtitle("Project week", size($axis_title_size)) ///
     ytitle("Minutes", size($axis_title_size)) ///
-    xlabel(1(1)7, labsize($axis_label_size)) ///
+    xlabel(1(1)14, labsize($axis_label_size)) ///
     ylabel(, labsize($axis_label_size) nogrid) ///
     legend(order(1 "Mean" 3 "Median") pos(6) rows(1) size($legend_size)) ///
     $graph_style
@@ -330,10 +418,9 @@ twoway ///
     (scatter median_form_duration project_week, ///
         mcolor($col_median)), ///
     title("Weekly Form Duration", $title_style) ///
-    subtitle("Mean and median minutes; point labels show n", size($subtitle_size)) ///
     xtitle("Project week", size($axis_title_size)) ///
     ytitle("Minutes", size($axis_title_size)) ///
-    xlabel(1(1)7, labsize($axis_label_size)) ///
+    xlabel(1(1)14, labsize($axis_label_size)) ///
     ylabel(, labsize($axis_label_size) nogrid) ///
     legend(order(1 "Mean" 3 "Median") pos(6) rows(1) size($legend_size)) ///
     $graph_style
@@ -357,7 +444,7 @@ contract lateris_yes other_ai_tool_used, freq(n_cases)
 bysort lateris_yes: egen total_group = total(n_cases)
 gen share = n_cases / total_group * 100
 
-label define lateris_week_lbl 0 "No Lateris" 1 "Lateris", replace
+label define lateris_week_lbl 0 "Non Lateris Week" 1 "Lateris Week", replace
 label values lateris_yes lateris_week_lbl
 
 graph bar share, ///
@@ -421,6 +508,75 @@ graph export "$graph_path/stakeholder_07b_ai_usage_reasons_by_lateris_status.svg
     replace width($export_w) height($export_h)
 
 restore
+
+***************************************************************
+* Reasons for AI Tool Use:
+* Weeks 1–7 and Weeks 8–14
+***************************************************************
+
+foreach period in 1 2 {
+
+    preserve
+
+    * Define week ranges and graph titles.
+    if `period' == 1 {
+        local week_start 1
+        local week_end   7
+        local period_title "Weeks 1–7"
+        local file_suffix "weeks_01_07"
+    }
+    else if `period' == 2 {
+        local week_start 8
+        local week_end   14
+        local period_title "Weeks 8–14"
+        local file_suffix "weeks_08_14"
+    }
+
+    * Keep observations from the respective period.
+    keep if inrange(project_week, `week_start', `week_end')
+
+    keep if !missing(ai_usage_reason) & trim(ai_usage_reason) != ""
+    keep if !missing(lateris_yes)
+
+    * Split multiple-response categories into separate reasons.
+    split ai_usage_reason, parse(" + ") gen(reason_)
+
+    reshape long reason_, i(case_id) j(reason_number)
+
+    drop if missing(reason_)
+    replace reason_ = strtrim(reason_)
+    drop if reason_ == ""
+
+    * Count each mention.
+    collapse ///
+        (sum) total_cases = case_counter, ///
+        by(lateris_yes reason_)
+
+    label define lateris_reason_lbl ///
+        0 "No Lateris" ///
+        1 "Lateris", ///
+        replace
+
+    label values lateris_yes lateris_reason_lbl
+
+    graph hbar total_cases, ///
+        over(reason_, sort(1) descending label(labsize(small))) ///
+        by(lateris_yes, ///
+            cols(1) ///
+            note("") ///
+            graphregion(color(white)) ///
+            title("Reasons for AI Tool Use: `period_title'", $title_style)) ///
+        bar(1, color($col_lateris)) ///
+        ytitle("Number of mentions", size($axis_title_size)) ///
+        ylabel(, labsize($axis_label_size) nogrid) ///
+        $graph_style
+
+    graph export ///
+        "$graph_path/stakeholder_07b_ai_usage_reasons_by_lateris_`file_suffix'.svg", ///
+        replace width($export_w) height($export_h)
+
+    restore
+}
 
 /******************************************************************
  10. Save stakeholder graph-ready dataset
