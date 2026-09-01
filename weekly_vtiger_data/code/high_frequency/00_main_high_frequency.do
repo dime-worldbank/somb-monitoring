@@ -1,54 +1,42 @@
 /******************************************************************
- 00_master_hf.do
- Project: SoMB / WB weekly Vtiger data
- Purpose: Run full high-frequency monitoring pipeline
-******************************************************************/
-
-clear all
-set more off
-version 18
-
-
-/******************************************************************
  0. Project paths
 ******************************************************************/
 
-* IMPORTANT:
-* Open Stata in the main project folder:
-* weekly_vtiger_data
+* Assume this do-file is run from:
+* weekly_vtiger_data/code/high_frequency
+
+cd "../.."
 
 global project_path "`c(pwd)'"
 
-global hf_code_path    "$project_path/code/high_frequency"
+global hf_code_path ///
+    "$project_path/code/high_frequency"
 
-global raw_path        "$project_path/raw_data"
-global processed_path  "$project_path/processed_data"
+global raw_path ///
+    "$project_path/raw_data"
 
-global output_path     "$project_path/outputs"
-global hf_output_path  "$output_path/high_frequency"
+global processed_path ///
+    "$project_path/processed_data"
 
-global table_path      "$hf_output_path/tables"
-global graph_path      "$hf_output_path/graphs"
-global log_path        "$hf_output_path/logs"
+global output_path ///
+    "$project_path/outputs"
 
+global hf_output_path ///
+    "$output_path/high_frequency"
 
-/******************************************************************
- 1. Create folders if they do not exist
-******************************************************************/
+global table_path ///
+    "$hf_output_path/tables"
 
-capture mkdir "$processed_path"
+global graph_path ///
+    "$hf_output_path/graphs"
 
-capture mkdir "$output_path"
-capture mkdir "$hf_output_path"
-
-capture mkdir "$table_path"
-capture mkdir "$graph_path"
-capture mkdir "$log_path"
-
-
+global log_path ///
+    "$hf_output_path/logs"
+	
+	
 /******************************************************************
  2. Start log file
-******************************************************************/
+******************************************************************
 
 capture log close
 
@@ -57,7 +45,7 @@ local now   = subinstr("`c(current_time)'", ":", "_", .)
 
 log using ///
     "$log_path/weekly_monitoring_`today'_`now'.log", ///
-    replace text
+    replace text */
 
 
 /******************************************************************
@@ -93,9 +81,10 @@ display "--------------------------------------------------"
 
 do "$hf_code_path/02_create_indicators.do"
 
+hier
 
 /******************************************************************
- 6. Create weekly tables
+ 6. Create weekly taichbles
 ******************************************************************/
 
 display "--------------------------------------------------"

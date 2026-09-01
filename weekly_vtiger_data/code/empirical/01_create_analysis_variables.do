@@ -1,5 +1,5 @@
 /******************************************************************
- 03_create_analysis_variables.do
+ 01_create_analysis_variables.do
  Purpose: Create variables required for empirical analysis
 ******************************************************************/
 
@@ -13,7 +13,7 @@ use "$indicator_file", clear
 
 /******************************************************************
  0. Define empirical analysis sample
-******************************************************************/
+******************************************************************
 
 gen analysis_sample = inrange(project_week, 1, 20) ///
     & !missing(treatment)
@@ -21,7 +21,7 @@ gen analysis_sample = inrange(project_week, 1, 20) ///
 label variable analysis_sample ///
     "Main empirical sample: randomized project weeks 1-20"
 
-tab project_week analysis_sample, missing
+tab project_week analysis_sample, missing **/
 
 
 /******************************************************************
@@ -91,6 +91,19 @@ tab counselor_id project_week if missing(treatment)
 
 *and also check how much 
 tab treatment lateris_yes, row
+
+/******************************************************************
+ 0. Define empirical analysis sample
+******************************************************************/
+
+gen analysis_sample = inrange(project_week, 1, 20) ///
+    & !missing(treatment)
+
+label variable analysis_sample ///
+    "Main empirical sample: randomized project weeks 1-20"
+
+tab project_week analysis_sample, missing
+
 
 /******************************************************************
  3. Create case count indicator
@@ -291,7 +304,53 @@ tab treatment other_ai_yes, row
 tab lag_treatment, missing
 tab control_after_treatment, missing
 
+/******************************************************************
+ 11.Create numeric counsellor ID
+******************************************************************/
 
+* Create numeric counsellor ID for fixed effects
+capture drop counselor_num
+
+encode counselor_id, gen(counselor_num)
+
+label variable counselor_num ///
+    "Numeric counsellor ID for fixed effects"
+
+* Check coding
+tab counselor_id counselor_num, missing
+
+/******************************************************************
+ 12. Case volume
+******************************************************************/
+
+* Number of cases handled per counsellor-week
+bysort counselor_num project_week: egen case_volume = ///
+    total(case_counter)
+
+label variable case_volume ///
+    "Number of cases handled per counsellor-week"
+	
+/******************************************************************
+ 12. Create counsellor-week cluster identifier
+******************************************************************/
+* Create numeric counsellor ID for fixed effects
+
+capture confirm variable counselor_num
+
+if _rc {
+    encode counselor_id, gen(counselor_num)
+}
+
+label variable counselor_num ///
+    "Numeric counsellor ID for fixed effects"
+capture drop counselor_week
+
+
+egen counselor_week = group(counselor_num project_week) ///
+    if analysis_sample == 1
+
+label variable counselor_week ///
+    "Counsellor-project week randomization unit"
 /******************************************************************
  101.Save analysis dataset
 ******************************************************************/

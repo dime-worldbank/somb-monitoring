@@ -24,19 +24,25 @@ version 18
 * Move two levels up to the project root:
 * weekly_vtiger_data/
 
+*cd "../.."
+
+* Project root
 cd "../.."
 
 global project_path "`c(pwd)'"
 
+* Code
 global empirical_code_path ///
     "$project_path/code/empirical"
 
+* Shared data folders
 global raw_path ///
     "$project_path/raw_data"
 
 global processed_path ///
     "$project_path/processed_data"
 
+* Outputs
 global output_path ///
     "$project_path/outputs"
 
@@ -53,16 +59,27 @@ global log_path ///
     "$empirical_output_path/logs"
 
 
-
 /******************************************************************
  1. Create output folders if they do not exist
 ******************************************************************/
 
+capture mkdir "$processed_path"
 capture mkdir "$output_path"
 capture mkdir "$empirical_output_path"
 capture mkdir "$table_path"
 capture mkdir "$graph_path"
 capture mkdir "$log_path"
+
+
+/******************************************************************
+ 2. Check paths
+******************************************************************/
+
+display "Project root:       $project_path"
+display "Empirical code:     $empirical_code_path"
+display "Raw data:           $raw_path"
+display "Processed data:     $processed_path"
+display "Empirical outputs:  $empirical_output_path"
 
 
 /******************************************************************
@@ -175,17 +192,18 @@ display "--------------------------------------------------"
 
 do "$empirical_code_path/04_main_ols.do"
 
-*/
+
 
 /******************************************************************
  10. Outcome families
-******************************************************************
+******************************************************************/
 
 display "--------------------------------------------------"
 display "Step 5: Running outcome-family analysis"
 display "--------------------------------------------------"
 
-do "$empirical_code_path/05_family_outcomes.do"
+do "$empirical_code_path/05_secondary_outcomes.do"
+
 
 
 /******************************************************************
@@ -196,9 +214,11 @@ display "--------------------------------------------------"
 display "Step 6: Running heterogeneity analysis"
 display "--------------------------------------------------"
 
-do "$empirical_code_path/06_heterogeneity.do"
+do "$empirical_code_path/06_heterogeneity_analysis.do" 
 
+here
 
+/*
 /******************************************************************
  12. Robustness checks
 ******************************************************************/
