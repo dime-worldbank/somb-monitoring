@@ -1,5 +1,5 @@
 /******************************************************************
- 05_main_analysis.do
+ 04_main_ols.do
  Project: SoMB / Lateris RCT
  Purpose: Estimate main intention-to-treat (ITT) effects of
           randomized Lateris assignment on primary and secondary
@@ -22,22 +22,27 @@ use "$analysis_file", clear
 /******************************************************************
  1. Prepare analysis sample
 ******************************************************************/
-* Create numeric counsellor ID for fixed effects
 capture confirm variable counselor_num
 
 if _rc {
-    encode counselor_id, gen(counselor_num)
+    display as error ///
+        "ERROR: counselor_num not found. Run 01_create_analysis_variables.do."
+    exit 111
 }
 
-label variable counselor_num ///
-    "Numeric counsellor ID for fixed effects"
-
-* Analysis sample was defined in 03_create_analysis_variables.do
 capture confirm variable analysis_sample
 
 if _rc {
     display as error ///
-        "ERROR: analysis_sample not found. Run 03_create_analysis_variables.do."
+        "ERROR: analysis_sample not found. Run 01_create_analysis_variables.do."
+    exit 111
+}
+
+capture confirm variable counselor_week
+
+if _rc {
+    display as error ///
+        "ERROR: counselor_week not found. Run 01_create_analysis_variables.do."
     exit 111
 }
 
@@ -51,16 +56,8 @@ count if analysis_sample == 1
 tab counselor_id if analysis_sample == 1
 tab treatment if analysis_sample == 1
 
-/*
 
-Creating 
 
-*/
-egen counselor_week = group(counselor_num project_week) ///
-    if analysis_sample == 1
-
-label variable counselor_week ///
-    "Counsellor-project week randomization unit"
 
 /******************************************************************
  2. Primary outcome 1:
@@ -98,19 +95,7 @@ estimates store m_form
     Unit of analysis: counsellor-week
 ******************************************************************/
 
-preserve
-
-keep if analysis_sample == 1
-
-bysort counselor_num project_week: keep if _n == 1
-
-tab counselor_id project_week, missing
-
-count
-
-restore
-
-
+**
 preserve
 
 keep if analysis_sample == 1
@@ -119,8 +104,16 @@ collapse ///
     (sum) case_volume = case_counter, ///
     by(counselor_id counselor_num project_week treatment)
 
+* to see if the in which week and which case the counsellor had 0 cases, to comapare to sick
+* days and vacation days.
+
+egen counselor_week = group(counselor_num project_week)
+
 label variable case_volume ///
     "Number of cases per counsellor-week"
+
+label variable counselor_week ///
+    "Counsellor-project week randomization unit"
 
 summarize case_volume, detail
 
@@ -128,29 +121,12 @@ reg case_volume ///
     treatment ///
     i.counselor_num ///
     i.project_week, ///
-    vce( cluster counselor_week)
+    vce(cluster counselor_week)
 
 estimates store m_volume
 
 restore
 
-* to see if the in which week and which case the counsellor had 0 cases, to comapare to sick
-* days and vacation days.
-
-preserve
-
-keep if analysis_sample == 1
-
-collapse ///
-    (sum) case_volume = case_counter, ///
-    by(counselor_id counselor_num project_week treatment)
-
-fillin counselor_num project_week
-
-list counselor_num project_week ///
-    if _fillin == 1, separator(0)
-
-restore
 
 
 /* Counselor-week availability for case volume analysis
