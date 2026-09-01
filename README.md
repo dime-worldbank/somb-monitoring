@@ -20,6 +20,7 @@ To run the analysis, copy the raw CSV files from OneDrive into the `raw_data/` f
 
 The weekly Vtiger data workflow is organized as follows:
 
+```
 weekly_vtiger_data/
 ├── code/
 │   ├── high_frequency/
@@ -61,6 +62,7 @@ weekly_vtiger_data/
         ├── graphs/
         └── logs/
 
+```
 The separation between high_frequency/ and empirical/ ensures that routine implementation monitoring and the empirical impact analysis can be run and maintained independently while using the same underlying cleaned data.
 
 
